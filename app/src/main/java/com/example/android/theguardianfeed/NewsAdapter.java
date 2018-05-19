@@ -32,13 +32,17 @@ public class NewsAdapter extends ArrayAdapter<News>{
         String currentTile = currentNews.getTitle();
         titleView.setText(currentTile);
 
-        TextView bodyView = listItemView.findViewById(R.id.body);
-        String currentBody = currentNews.getBody();
+        TextView bodyView = listItemView.findViewById(R.id.section);
+        String currentBody = currentNews.getSection();
         bodyView.setText(currentBody);
 
         TextView authorView = listItemView.findViewById(R.id.author);
         String currentAuthor = currentNews.getAuthor();
         authorView.setText(currentAuthor);
+
+        TextView dateView = listItemView.findViewById(R.id.date);
+        String currentDate = currentNews.getDate();
+        dateView.setText(currentDate);
 
         return listItemView;
     }

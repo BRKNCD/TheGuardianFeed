@@ -3,24 +3,36 @@ package com.example.android.theguardianfeed;
 public class News {
 
     private String mTitle;
-    private String mBody;
+    private String mSection;
     private String mAuthor;
+    private String mDate;
+    private String mUrl;
 
-    News(String title, String body, String author){
+    News(String title, String section, String author, String date, String url){
         mTitle = title;
-        mBody = body;
+        mSection = section;
         mAuthor = author;
+        mDate = date;
+        mUrl = url;
     }
 
     String getTitle(){
         return mTitle;
     }
 
-    String getBody(){
-        return mBody;
+    String getSection(){
+        return mSection;
     }
 
     String getAuthor(){
         return mAuthor;
+    }
+
+    String getDate(){
+        return mDate;
+    }
+
+    String getUrl(){
+        return mUrl;
     }
 }

@@ -2,19 +2,22 @@ package com.example.android.theguardianfeed;
 
 import android.app.LoaderManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.Loader;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity  implements LoaderManager.LoaderCallbacks<List<News>> {
+public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<News>> {
 
     /**
      * Constant value for the earthquake loader ID. We can choose any integer.
@@ -26,6 +29,11 @@ public class MainActivity extends AppCompatActivity  implements LoaderManager.Lo
      * Adapter for the list of News
      */
     private NewsAdapter mAdapter;
+
+    /**
+     * TextView that is displayed when the list is empty
+     */
+    private TextView mEmptyStateTextView;
 
     private static final String GUARDIAN_REQUEST_URL =
             "http://content.guardianapis.com/search?order-by=newest&show-tags=contributor&page=1&page-size=100&q=Android&api-key=65013802-da70-4c9b-a54d-6bb0e09cd6a1";
@@ -44,6 +52,9 @@ public class MainActivity extends AppCompatActivity  implements LoaderManager.Lo
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
         boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
 
+        ListView newsListView = (ListView) findViewById(R.id.list);
+        mEmptyStateTextView = (TextView) findViewById(R.id.empty_view);
+        newsListView.setEmptyView(mEmptyStateTextView);
 
         if (isConnected) {
             // Get a reference to the LoaderManager, in order to interact with loaders.
@@ -54,27 +65,21 @@ public class MainActivity extends AppCompatActivity  implements LoaderManager.Lo
             // because this activity implements the LoaderCallbacks interface).
             loaderManager.initLoader(NEWS_LOADER_ID, null, this);
         } else {// Hide loading indicator because the data has been loaded
-            //View loadingIndicator = findViewById(R.id.loading_indicator);
-            //loadingIndicator.setVisibility(View.GONE);
-            //mEmptyStateTextView.setText(R.string.no_connection);}
-
-            ListView newsListView = (ListView) findViewById(R.id.list);
-
-            newsListView.setOnItemClickListener(new ListView.OnItemClickListener() {
-                public void onItemClick(AdapterView adapterView, View view, int position, long id) {
-                    News currentNews = news.get(position);
-                    //String url = currentNews.getEarthquakeURL();
-                    //Intent websiteIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                    //startActivity(websiteIntent);
-                }
-            });
-
-            //News first = new News("CIAO", "CIAO", "CIAO");
-            //news.add(first);
-            mAdapter = new NewsAdapter(this, news);
-
-            newsListView.setAdapter(mAdapter);
+            View loadingIndicator = findViewById(R.id.loading_indicator);
+            loadingIndicator.setVisibility(View.GONE);
+            mEmptyStateTextView.setText(R.string.no_connection);
         }
+
+        newsListView.setOnItemClickListener(new ListView.OnItemClickListener() {
+            public void onItemClick(AdapterView adapterView, View view, int position, long id) {
+                News currentNews = news.get(position);
+                String url = currentNews.getUrl();
+                Intent websiteIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                startActivity(websiteIntent);
+            }
+        });
+        mAdapter = new NewsAdapter(this, news);
+        newsListView.setAdapter(mAdapter);
     }
 
     @Override
@@ -86,8 +91,8 @@ public class MainActivity extends AppCompatActivity  implements LoaderManager.Lo
     @Override
     public void onLoadFinished(Loader<List<News>> loader, List<News> news) {
         // Hide loading indicator because the data has been loaded
-        //View loadingIndicator = findViewById(R.id.loading_indicator);
-        //loadingIndicator.setVisibility(View.GONE);
+        View loadingIndicator = findViewById(R.id.loading_indicator);
+        loadingIndicator.setVisibility(View.GONE);
 
         // Clear the adapter of previous earthquake data
         mAdapter.clear();
@@ -97,7 +102,7 @@ public class MainActivity extends AppCompatActivity  implements LoaderManager.Lo
         if (news != null && !news.isEmpty()) {
             mAdapter.addAll(news);
         }
-        //mEmptyStateTextView.setText(R.string.no_earthquakes);
+        mEmptyStateTextView.setText(R.string.no_news);
     }
 
     @Override
