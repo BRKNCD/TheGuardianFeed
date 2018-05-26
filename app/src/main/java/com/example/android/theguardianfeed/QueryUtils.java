@@ -29,6 +29,105 @@ public class QueryUtils {
     }
 
     /**
+     * Query the dataset and return a list of {@link NewsLoader} objects.
+     */
+    public static List<News> fetchNewsData(String requestUrl) {
+        // Create URL object
+        URL url = createUrl(requestUrl);
+
+        // Perform HTTP request to the URL and receive a JSON response back
+        String jsonResponse = null;
+
+        jsonResponse = makeHttpRequest(url);
+        // Extract relevant fields from the JSON response and create a list of {@link News}s
+        List<News> news = extractFeatureFromJson(jsonResponse);
+
+        // Return the list of {@link Earthquake}s
+        return news;
+    }
+
+
+    private static URL createUrl(String stringUrl) {
+        URL url = null;
+        try {
+            url = new URL(stringUrl);
+        } catch (MalformedURLException e) {
+            Log.e(LOG_TAG, "Problem building the URL ", e);
+        }
+        return url;
+    }
+
+
+
+    /*
+        Initiate internet connection and fetch JSON string
+        from the Json data source URL
+        */
+    private static String makeHttpRequest(URL url) {
+        String jsonResponse = "";
+
+        if (url == null) {
+            return jsonResponse;
+        }
+
+        HttpURLConnection urlConnection = null;
+        InputStream inputStream = null;
+
+        try {
+            urlConnection = (HttpURLConnection) url.openConnection();
+            urlConnection.setReadTimeout(5000);
+            urlConnection.setConnectTimeout(1500);
+            urlConnection.setRequestMethod("GET");
+            urlConnection.connect();
+
+            // If the request was successful (response code 200),
+            // then read the input stream and parse the response.
+            if (urlConnection.getResponseCode() == 200) {
+                inputStream = urlConnection.getInputStream();
+                jsonResponse = readFromStream(inputStream);
+            } else {
+                Log.e(LOG_TAG, "Error response code: " + urlConnection.getResponseCode());
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (urlConnection != null) {
+                urlConnection.disconnect();
+            }
+            if (inputStream != null) {
+                // Closing the input stream could throw an IOException, which is why
+                // the makeHttpRequest(URL url) method signature specifies than an IOException
+                // could be thrown.
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return jsonResponse;
+    }
+
+    /**
+     * Convert the {@link InputStream} into a String which contains the
+     * whole JSON response from the server.
+     */
+    private static String readFromStream(InputStream inputStream) throws IOException {
+        StringBuilder output = new StringBuilder();
+        if (inputStream != null) {
+            InputStreamReader inputStreamReader = new InputStreamReader(inputStream, Charset.forName("UTF-8"));
+            BufferedReader reader = new BufferedReader(inputStreamReader);
+            String line = reader.readLine();
+            while (line != null) {
+                output.append(line);
+                line = reader.readLine();
+            }
+        }
+        return output.toString();
+    }
+
+    /**
      * Return a list of {@link News} objects that has been built up from
      * parsing a JSON response.
      */
@@ -105,11 +204,11 @@ public class QueryUtils {
                     date = null;
                 }
 
-                // Create a new {@link Earthquake} object with the magnitude, location, time,
+                // Create a new {@link News} object with the title, section, author, date
                 // and url from the JSON response.
                 News news = new News(title, section, author, date, url);
 
-                // Add the new {@link Earthquake} to the list of earthquakes.
+                // Add the new {@link News} to the list of News.
                 newsList.add(news);
             }
 
@@ -117,7 +216,7 @@ public class QueryUtils {
             // If an error is thrown when executing any of the above statements in the "try" block,
             // catch the exception here, so the app doesn't crash. Print a log message
             // with the message from the exception.
-            Log.e("QueryUtils", "Problem parsing the earthquake JSON results", e);
+            Log.e("QueryUtils", "Problem parsing the news JSON results", e);
         }
 
         // Return the list of earthquakes
@@ -155,103 +254,5 @@ public class QueryUtils {
         } else {
             return (firstName + " " + lastName);
         }
-    }
-
-
-    /**
-     * Query the USGS dataset and return a list of {@link NewsLoader} objects.
-     */
-    public static List<News> fetchNewsData(String requestUrl) {
-        // Create URL object
-        URL url = createUrl(requestUrl);
-
-        // Perform HTTP request to the URL and receive a JSON response back
-        String jsonResponse = null;
-
-            jsonResponse = makeHttpRequest(url);
-
-        // Extract relevant fields from the JSON response and create a list of {@link Earthquake}s
-        List<News> earthquakes = extractFeatureFromJson(jsonResponse);
-
-        // Return the list of {@link Earthquake}s
-        return earthquakes;
-    }
-
-    private static URL createUrl(String stringUrl) {
-        URL url = null;
-        try {
-            url = new URL(stringUrl);
-        } catch (MalformedURLException e) {
-            Log.e(LOG_TAG, "Problem building the URL ", e);
-        }
-        return url;
-    }
-
-    /*
-        Initiate internet connection and fetch JSON string
-        from the Json data source URL
-        */
-    private static String makeHttpRequest(URL url) {
-        String jsonResponse = "";
-
-        if (url == null) {
-            return jsonResponse;
-        }
-
-        HttpURLConnection urlConnection = null;
-        InputStream inputStream = null;
-
-        try {
-            urlConnection = (HttpURLConnection) url.openConnection();
-            urlConnection.setReadTimeout(5000);
-            urlConnection.setConnectTimeout(1500);
-            urlConnection.setRequestMethod("GET");
-            urlConnection.connect();
-
-            // If the request was successful (response code 200),
-            // then read the input stream and parse the response.
-            if (urlConnection.getResponseCode() == 200) {
-                inputStream = urlConnection.getInputStream();
-                jsonResponse = readFromStream(inputStream);
-            } else {
-                Log.e(LOG_TAG, "Error response code: " + urlConnection.getResponseCode());
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (urlConnection != null) {
-                urlConnection.disconnect();
-            }
-            if (inputStream != null) {
-                // Closing the input stream could throw an IOException, which is why
-                // the makeHttpRequest(URL url) method signature specifies than an IOException
-                // could be thrown.
-                try {
-                    inputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        return jsonResponse;
-    }
-
-    /**
-     * Convert the {@link InputStream} into a String which contains the
-     * whole JSON response from the server.
-     */
-    private static String readFromStream(InputStream inputStream) throws IOException {
-        StringBuilder output = new StringBuilder();
-        if (inputStream != null) {
-            InputStreamReader inputStreamReader = new InputStreamReader(inputStream, Charset.forName("UTF-8"));
-            BufferedReader reader = new BufferedReader(inputStreamReader);
-            String line = reader.readLine();
-            while (line != null) {
-                output.append(line);
-                line = reader.readLine();
-            }
-        }
-        return output.toString();
     }
 }
