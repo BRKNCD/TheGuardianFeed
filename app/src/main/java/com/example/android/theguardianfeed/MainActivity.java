@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -120,12 +121,17 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         // buildUpon prepares the baseUri that we just parsed so we can add query parameters to it
         Uri.Builder uriBuilder = baseUri.buildUpon();
 
-        // Append query parameter and its value. For example, the `format=geojson
-        uriBuilder.appendQueryParameter("orderby", "newest");
-        uriBuilder.appendQueryParameter("q", searchKeyword);
-        uriBuilder.appendQueryParameter("api-key","test");
+        if (TextUtils.isEmpty(searchKeyword)) {
+            uriBuilder.appendQueryParameter("orderby", "newest");
+            uriBuilder.appendQueryParameter("api-key", "test");
+        } else {
 
-        Log.e("THE CURRENT URL",uriBuilder.toString());
+            // Append query parameter and its value. For example, the `format=geojson
+            uriBuilder.appendQueryParameter("orderby", "newest");
+            uriBuilder.appendQueryParameter("q", searchKeyword);
+            uriBuilder.appendQueryParameter("api-key", "test");
+        }
+        Log.e("THE CURRENT URL", uriBuilder.toString());
 
         // Create a new loader for the given URL
         return new NewsLoader(this, uriBuilder.toString());
